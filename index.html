@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#132c27">
+  <title>Seven Up — Scorekeeper</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172b27;
+      --muted: #71827c;
+      --green: #153a31;
+      --green-2: #24594a;
+      --mint: #d9eee4;
+      --lime: #c5e66b;
+      --paper: #f6f7f0;
+      --card: #fffefa;
+      --line: #e5e9df;
+      --orange: #e99b5c;
+      --shadow: 0 18px 55px rgba(30, 57, 46, .09);
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 88% 12%, rgba(197, 230, 107, .19), transparent 28rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(121, 166, 90, .48);
+      outline-offset: 2px;
+    }
+    .topbar {
+      min-height: 76px;
+      padding: 0 clamp(20px, 5vw, 72px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(31, 59, 48, .08);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 38px; height: 38px; border-radius: 13px;
+      display: grid; place-items: center;
+      color: var(--green); background: var(--lime);
+      font-weight: 900; font-size: 19px; letter-spacing: -.08em;
+      box-shadow: 0 5px 12px rgba(92, 126, 53, .14);
+    }
+    .brand-copy { line-height: 1.1; }
+    .brand-name { font-size: 13px; font-weight: 850; letter-spacing: .12em; }
+    .brand-caption { margin-top: 5px; color: var(--muted); font-size: 11px; letter-spacing: .02em; }
+    .save-state { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .save-dot { width: 7px; height: 7px; border-radius: 50%; background: #7da16c; }
+    .shell { width: min(1120px, calc(100% - 48px)); min-width: 0; margin: clamp(32px, 6vh, 58px) auto 64px; }
+    .screen { animation: rise .35s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .setup-layout { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(380px, .96fr); gap: clamp(24px, 5vw, 62px); align-items: start; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--green-2); font-size: 11px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; display: block; width: 19px; height: 2px; background: var(--orange); border-radius: 2px; }
+    h1, h2, p { margin-top: 0; }
+    h1 { max-width: 520px; margin: 17px 0 17px; font-size: clamp(40px, 5.5vw, 66px); line-height: .99; letter-spacing: -.065em; font-weight: 760; }
+    .intro { max-width: 440px; color: #687a72; font-size: 16px; line-height: 1.7; }
+    .how-it-works { display: flex; gap: 17px; margin-top: 34px; color: var(--muted); font-size: 12px; }
+    .how-item { display: flex; align-items: center; gap: 7px; }
+    .step-number { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 8px; background: #e7eedb; color: var(--green); font-size: 10px; font-weight: 850; }
+    .panel { background: var(--card); border: 1px solid rgba(31, 59, 48, .08); border-radius: 23px; box-shadow: var(--shadow); }
+    .setup-card { width: 100%; min-width: 0; padding: clamp(20px, 3vw, 30px); }
+    .card-kicker { margin-bottom: 8px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .setup-card h2 { margin-bottom: 8px; font-size: 24px; letter-spacing: -.04em; }
+    .card-description { margin-bottom: 24px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .field-label { display: block; margin-bottom: 8px; color: #42574f; font-size: 12px; font-weight: 750; }
+    input, select {
+      width: 100%; min-height: 46px; padding: 0 13px;
+      color: var(--ink); background: #fbfcf8; border: 1px solid #dfe5da; border-radius: 11px;
+    }
+    input::placeholder { color: #a3afa8; }
+    input:disabled { color: var(--green); background: #edf5e8; border-color: #d7e5cd; font-weight: 750; }
+    .count-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+    .count-control { position: relative; }
+    .count-control input { padding-right: 66px; font-size: 18px; font-weight: 750; }
+    .count-suffix { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; pointer-events: none; }
+    .button {
+      min-height: 46px; padding: 0 18px; border: 0; border-radius: 11px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      font-weight: 760; font-size: 13px; transition: transform .15s ease, background .15s ease, opacity .15s ease;
+    }
+    .button:hover:not(:disabled) { transform: translateY(-1px); }
+    .button-primary { color: #f7faef; background: var(--green); box-shadow: 0 7px 14px rgba(21, 58, 49, .13); }
+    .button-primary:hover:not(:disabled) { background: #204d40; }
+    .button-lime { color: var(--green); background: var(--lime); }
+    .button-lime:hover:not(:disabled) { background: #d0ec83; }
+    .button-secondary { color: var(--green); background: #eef3e9; }
+    .button-secondary:hover:not(:disabled) { background: #e3edda; }
+    .button-quiet { min-height: 40px; color: #54675f; background: transparent; border: 1px solid var(--line); }
+    .button:disabled { cursor: not-allowed; opacity: .45; }
+    .full { width: 100%; }
+    .name-step { margin-top: 23px; padding-top: 21px; border-top: 1px solid var(--line); }
+    .name-list { display: grid; gap: 11px; max-height: min(34svh, 280px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 1px 4px 2px 0; margin: 17px 0 18px; }
+    .name-row { display: grid; grid-template-columns: 27px 1fr; gap: 10px; align-items: center; }
+    .name-index { width: 25px; height: 25px; border-radius: 9px; display: grid; place-items: center; background: #eff3e9; color: var(--green-2); font-size: 11px; font-weight: 800; }
+    .name-hint { margin: -7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+    .section-heading h1 { margin: 10px 0 7px; font-size: clamp(33px, 4vw, 46px); }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 13px; }
+    .game-meta { display: flex; gap: 8px; }
+    .meta-pill { padding: 8px 11px; border-radius: 99px; background: #e9efe1; color: #476154; font-size: 11px; font-weight: 750; white-space: nowrap; }
+    .game-grid { display: grid; grid-template-columns: minmax(0, 1fr) 286px; min-width: 0; align-items: start; gap: 18px; }
+    .main-column, .side-column { display: grid; min-width: 0; gap: 18px; }
+    .panel, .round-card, .roster-card { min-width: 0; }
+    .mobile-game-view { display: none; }
+    .round-card, .roster-card, .history-card { padding: 23px; }
+    .panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .panel-heading h2 { margin: 0 0 5px; font-size: 17px; letter-spacing: -.03em; }
+    .panel-heading p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .round-badge { padding: 7px 10px; border-radius: 9px; color: var(--green-2); background: #edf3e6; font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .auto-select-row { display: flex; align-items: center; gap: 10px; margin: 18px 0 13px; }
+    .auto-select-row .field-label { margin: 0; white-space: nowrap; }
+    .auto-select-row select { min-height: 40px; max-width: 245px; padding-right: 30px; font-size: 12px; }
+    .sheet-scroll { display: block; width: 100%; min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #b8c8af #f0f4eb; max-height: min(48vh, 420px); max-height: min(48svh, 420px); overscroll-behavior: contain; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; border: 1px solid #dfe6d9; border-radius: 12px; background: #fff; }
+    .score-sheet { width: max-content; min-width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 12px; white-space: nowrap; }
+    .score-sheet th { min-width: 126px; padding: 12px 13px; position: sticky; top: 0; z-index: 2; color: #596d62; background: #f0f4eb; border-right: 1px solid #dfe6d9; border-bottom: 1px solid #dfe6d9; text-align: center; font-size: 10px; letter-spacing: .04em; text-transform: none; }
+    .score-sheet th:not(:first-child) { overflow: hidden; text-overflow: ellipsis; }
+    .score-sheet th:first-child { left: 0; z-index: 3; min-width: 64px; }
+    .score-sheet th.calculated-column { color: #42633f; background: #e7f0d8; }
+    .score-sheet td { min-width: 126px; height: 49px; padding: 0; border-right: 1px solid #edf0e9; border-bottom: 1px solid #edf0e9; color: #4c6057; text-align: right; font-variant-numeric: tabular-nums; }
+    .score-sheet td.sheet-round { position: sticky; left: 0; z-index: 1; min-width: 64px; padding: 0 12px; color: #819087; background: #f8faf5; text-align: center; font-size: 10px; font-weight: 800; }
+    .score-sheet td.sheet-value { padding: 0 14px; }
+    .score-sheet td.sheet-value.negative { color: #b66242; }
+    .score-sheet td.sheet-value.positive { color: #3b7654; }
+    .score-sheet tr.score-entry td { background: #fbfdf8; }
+    .score-sheet tr.score-entry td.sheet-round { color: var(--green); background: #f0f4eb; }
+    .score-sheet td.sheet-cell { padding: 0; }
+    .score-sheet td.sheet-cell:focus-within { position: relative; z-index: 1; outline: 2px solid #6e9a5b; outline-offset: -2px; }
+    .score-sheet input { display: block; width: 100%; min-height: 50px; padding: 0 13px; border: 0; border-radius: 0; background: transparent; text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; touch-action: manipulation; }
+    .score-sheet input:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px #6e9a5b; }
+    .score-sheet td.sheet-auto { color: var(--green); background: #eff6e8 !important; font-weight: 850; }
+    .sheet-computed { padding: 0 14px; }
+    .sheet-computed.waiting { color: #8b998d; font-size: 11px; font-weight: 550; }
+    .sheet-caption { margin: 9px 2px 0; color: #73866e; font-size: 10px; }
+    .round-total { min-height: 19px; margin: 12px 2px 13px; color: var(--muted); font-size: 11px; }
+    .round-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .form-hint { max-width: 245px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .roster-list { display: grid; gap: 11px; }
+    .roster-person { display: grid; grid-template-columns: 27px minmax(0,1fr) auto; gap: 9px; align-items: center; }
+    .avatar { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 9px; color: #37564a; background: #e8f0e1; font-size: 10px; font-weight: 850; }
+    .roster-name { overflow: hidden; color: #52655d; font-size: 11px; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
+    .roster-score { color: var(--ink); font-size: 12px; font-weight: 850; font-variant-numeric: tabular-nums; }
+    .roster-score.negative { color: #b66242; }
+    .roster-score.positive { color: #3b7654; }
+    .roster-footer { display: flex; align-items: center; gap: 7px; margin: 17px 0 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; line-height: 1.4; }
+    .roster-footer span:first-child { color: #6d9863; font-size: 15px; }
+    .history-card { padding-bottom: 9px; }
+    .empty-state { padding: 19px 12px 20px; color: #839189; text-align: center; font-size: 12px; }
+    .finish-row { display: flex; justify-content: flex-end; margin-top: 2px; }
+    .result-wrap { width: min(1100px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr); align-items: start; gap: 18px; }
+    .result-banner { grid-column: 1; grid-row: 1; min-height: 300px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; padding: 36px; color: #f5f7ed; background: var(--green); border-radius: 25px; box-shadow: 0 22px 50px rgba(21, 58, 49, .18); }
+    .result-banner::after { content: "✦"; position: absolute; top: -24px; right: 30px; color: rgba(197,230,107,.2); font-size: 210px; line-height: 1; transform: rotate(12deg); }
+    .result-banner > * { position: relative; z-index: 1; }
+    .winner-label { color: #d5e8c6; font-size: 11px; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+    .result-banner h1 { max-width: 620px; margin: 17px 0 10px; font-size: clamp(38px, 6vw, 62px); }
+    .result-subtitle { margin: 0; color: rgba(245,247,237,.7); font-size: 13px; }
+    .results-card { grid-column: 2; grid-row: 1; margin-top: 0; padding: 24px 28px; }
+    .results-card h2 { margin: 0 0 14px; font-size: 17px; }
+    .result-row { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line); }
+    .place { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; color: #5d7166; background: #eff2e9; font-size: 11px; font-weight: 850; }
+    .place.first { color: #576b22; background: #edf4cf; }
+    .result-player { font-size: 13px; font-weight: 750; }
+    .result-total { font-size: 14px; font-weight: 850; font-variant-numeric: tabular-nums; }
+    .result-total.negative { color: #b66242; }
+    .result-total.positive { color: #3b7654; }
+    .result-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 0; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (min-width: 1440px) {
+      .shell { width: min(1220px, calc(100% - 80px)); }
+      .game-grid { grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; }
+    }
+    @media (min-width: 1081px) {
+      #setupScreen { display: flex; min-height: calc(100svh - 172px); align-items: center; }
+      .setup-layout { width: 100%; }
+    }
+    @media (max-width: 1080px) {
+      .setup-layout { grid-template-columns: minmax(0, 1fr); gap: 25px; }
+      .setup-layout > div:first-child { width: 100%; max-width: 720px; justify-self: center; }
+      .setup-card { max-width: 720px; justify-self: center; }
+    }
+    @media (max-width: 900px) {
+      .game-grid { grid-template-columns: minmax(0, 1fr); }
+      .side-column { grid-row: 1; }
+      .roster-list { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    }
+    @media (max-width: 780px) {
+      .shell { margin-top: clamp(24px, 5vh, 38px); }
+      .setup-layout { gap: 22px; }
+      .roster-card { padding: 18px 20px; }
+      .roster-footer { margin-top: 13px; }
+      .section-heading { align-items: start; }
+      .result-wrap { width: min(760px, 100%); grid-template-columns: minmax(0, 1fr); }
+      .result-banner, .results-card, .result-actions { grid-column: 1; grid-row: auto; }
+      .result-banner { min-height: 0; }
+    }
+    @media (max-width: 540px), (max-height: 480px) and (orientation: landscape) and (pointer: coarse) {
+      .topbar { min-height: 64px; padding: 0 16px; }
+      .brand-caption { display: none; }
+      .save-state { gap: 6px; font-size: 10px; }
+      .shell { width: calc(100% - 32px); margin: 24px auto 40px; }
+      .setup-card, .round-card, .roster-card { padding: 18px; }
+      .how-it-works { gap: 9px 14px; flex-wrap: wrap; }
+      .section-heading { display: block; margin-bottom: 17px; }
+      .section-heading h1 { font-size: clamp(34px, 10vw, 44px); }
+      .game-meta { margin-top: 13px; }
+      .auto-select-row { align-items: stretch; flex-direction: column; gap: 7px; }
+      .auto-select-row select { max-width: none; min-height: 44px; }
+      .score-sheet th, .score-sheet td { min-width: 112px; }
+      .score-sheet th:first-child, .score-sheet td.sheet-round { min-width: 56px; }
+      .sheet-scroll { max-height: 46svh; }
+      .round-actions { align-items: stretch; flex-direction: column; }
+      .round-actions .button, .finish-row .button { width: 100%; }
+      .form-hint { max-width: none; order: 1; }
+      .finish-row { margin-top: 0; }
+      .result-banner { padding: 27px 23px; }
+      .results-card { padding: 20px; }
+      .result-actions .button { width: 100%; min-height: 54px; }
+      .name-list { max-height: min(36svh, 250px); }
+      .desktop-game-heading, .desktop-game-grid { display: none; }
+      .mobile-game-view { display: grid; gap: 13px; min-width: 0; }
+      .mobile-game-heading { padding: 2px 2px 1px; }
+      .mobile-game-heading .eyebrow { font-size: 10px; }
+      .mobile-round-title-row { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-top: 9px; }
+      .mobile-round-title-row h1 { margin: 0; font-size: clamp(34px, 9vw, 42px); line-height: 1; letter-spacing: -.06em; }
+      .mobile-round-count { padding: 7px 10px; border-radius: 99px; color: #476154; background: #e9efe1; font-size: 11px; font-weight: 800; white-space: nowrap; }
+      .mobile-game-heading > p { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .mobile-entry-card, .mobile-totals-card, .mobile-history-card { padding: 17px; }
+      .mobile-card-heading { margin-bottom: 15px; }
+      .mobile-card-heading h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -.03em; }
+      .mobile-card-heading p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
+      .mobile-entry-card > .field-label { margin: 0 0 7px; font-size: 12px; }
+      .mobile-entry-card > select { min-height: 54px; margin-bottom: 13px; background-color: #fbfcf8; font-size: 16px; }
+      .mobile-loss-list { display: grid; gap: 8px; }
+      .mobile-loss-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(104px, .55fr); align-items: center; gap: 8px; min-width: 0; padding: 8px 9px 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fbfcf8; }
+      .mobile-loss-copy { min-width: 0; display: grid; gap: 3px; }
+      .mobile-loss-name { overflow: hidden; color: #344a41; font-size: 13px; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
+      .mobile-loss-label { color: #87958d; font-size: 10px; }
+      .mobile-loss-control { position: relative; min-width: 0; }
+      .mobile-loss-prefix { position: absolute; top: 50%; left: 12px; z-index: 1; transform: translateY(-50%); color: #b66242; font-size: 20px; font-weight: 750; pointer-events: none; }
+      .mobile-loss-control input { min-height: 58px; padding: 0 9px 0 28px; border: 1px solid #dfe5da; border-radius: 10px; background: white; text-align: right; font-size: 20px; font-weight: 750; font-variant-numeric: tabular-nums; }
+      .mobile-loss-control input::-webkit-inner-spin-button, .mobile-loss-control input::-webkit-outer-spin-button { margin: 0; -webkit-appearance: none; }
+      .mobile-loss-control input { appearance: textfield; }
+      .mobile-winner-result { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 11px; padding: 13px 14px; border: 1px solid #dce9d1; border-radius: 12px; background: #eff6e8; }
+      .mobile-winner-copy { min-width: 0; display: grid; gap: 4px; }
+      .mobile-winner-copy span { color: #72866d; font-size: 10px; }
+      .mobile-winner-copy strong { overflow: hidden; color: var(--green); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+      .mobile-winner-score { color: #3b7654; font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; }
+      .mobile-winner-score.waiting { color: #89968b; font-size: 12px; font-weight: 650; }
+      .mobile-round-total { min-height: 17px; margin: 9px 1px 12px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+      .mobile-add-button, .mobile-finish-button { width: 100%; min-height: 58px; font-size: 15px; }
+      .mobile-roster-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .mobile-roster-person { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; border-radius: 10px; background: #f4f7ef; }
+      .mobile-roster-name { overflow: hidden; color: #52655d; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+      .mobile-roster-score { flex: none; color: var(--ink); font-size: 12px; font-weight: 850; font-variant-numeric: tabular-nums; }
+      .mobile-roster-score.negative { color: #b66242; }
+      .mobile-roster-score.positive { color: #3b7654; }
+      .mobile-history-list { display: grid; gap: 9px; }
+      .mobile-history-empty { padding: 5px 0 2px; color: #839189; font-size: 11px; }
+      .mobile-history-item { padding: 10px; border: 1px solid #edf0e9; border-radius: 11px; }
+      .mobile-history-round { margin-bottom: 8px; color: #7d8d84; font-size: 10px; font-weight: 850; }
+      .mobile-history-scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      .mobile-history-score { min-width: 0; display: flex; justify-content: space-between; gap: 5px; padding: 7px 8px; border-radius: 8px; background: #f7f8f4; font-size: 10px; }
+      .mobile-history-score span { overflow: hidden; color: #61736a; text-overflow: ellipsis; white-space: nowrap; }
+      .mobile-history-score b { flex: none; color: #344a41; font-variant-numeric: tabular-nums; }
+      .mobile-history-score b.negative { color: #b66242; }
+      .mobile-history-score b.positive { color: #3b7654; }
+      .mobile-finish-button { margin-top: 0; }
+    }
+    @media (max-width: 420px) {
+      .roster-list { grid-template-columns: minmax(0, 1fr); }
+      .score-sheet th, .score-sheet td { min-width: 96px; }
+      .score-sheet th:first-child, .score-sheet td.sheet-round { min-width: 50px; }
+    }
+    @media (max-width: 380px) {
+      .topbar { padding: 0 12px; }
+      .brand { gap: 8px; }
+      .brand-mark { width: 34px; height: 34px; }
+      .brand-name { font-size: 11px; }
+      .save-state > span:last-child { max-width: 105px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .shell { width: calc(100% - 24px); }
+      .count-row { grid-template-columns: 1fr; }
+      .count-row .button { width: 100%; }
+      .score-sheet th, .score-sheet td { min-width: 96px; }
+      .score-sheet th:first-child, .score-sheet td.sheet-round { min-width: 50px; }
+      .score-sheet input { padding: 0 10px; }
+    }
+    @media (max-width: 900px) and (max-height: 520px) {
+      .topbar { min-height: 56px; }
+      .shell { margin-top: 16px; margin-bottom: 24px; }
+      .score-sheet th { position: static; }
+      .sheet-scroll { max-height: 44svh; }
+    }
+    @media (min-width: 541px) and (max-height: 820px) {
+      .topbar { min-height: 64px; }
+      .shell { margin-top: 24px; margin-bottom: 32px; }
+      .setup-card { padding: 22px; }
+      .card-description { margin-bottom: 17px; }
+      .name-step { margin-top: 17px; padding-top: 15px; }
+      .name-list { max-height: min(30svh, 220px); gap: 8px; margin: 12px 0 14px; }
+      .name-row input { min-height: 42px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" aria-label="Seven Up Scorekeeper">
+      <div class="brand-mark" aria-hidden="true">7</div>
+      <div class="brand-copy">
+        <div class="brand-name">SEVEN UP</div>
+        <div class="brand-caption">A little less math. A lot more game.</div>
+      </div>
+    </div>
+    <div class="save-state" id="saveState"><span class="save-dot" aria-hidden="true"></span><span>Ready for a game</span></div>
+  </header>
+
+  <main class="shell">
+    <section class="screen" id="setupScreen">
+      <div class="setup-layout">
+        <div>
+          <span class="eyebrow">Your 7up scorecard</span>
+          <h1>Keep the game moving.</h1>
+          <p class="intro">Track every round, let the scorecard do the balancing, and find out who came out on top.</p>
+          <div class="how-it-works" aria-label="How it works">
+            <div class="how-item"><span class="step-number">01</span> Add players</div>
+            <div class="how-item"><span class="step-number">02</span> Score rounds</div>
+            <div class="how-item"><span class="step-number">03</span> Find the winner</div>
+          </div>
+        </div>
+
+        <div class="panel setup-card">
+          <div class="card-kicker">New game</div>
+          <h2>Who’s playing?</h2>
+          <p class="card-description">Choose the number of players, then give everyone a name.</p>
+          <label class="field-label" for="playerCount">Number of players</label>
+          <div class="count-row">
+            <div class="count-control">
+              <input id="playerCount" type="number" min="2" max="20" step="1" value="4" inputmode="numeric">
+              <span class="count-suffix">players</span>
+            </div>
+            <button class="button button-secondary" id="continueButton" type="button">Continue <span aria-hidden="true">→</span></button>
+          </div>
+          <div id="nameStep" class="name-step" hidden>
+            <label class="field-label">Player names</label>
+            <p class="name-hint">Names can repeat. Player numbers distinguish players with matching names.</p>
+            <div id="nameList" class="name-list"></div>
+            <button class="button button-primary full" id="startButton" type="button">Start game <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="gameScreen" hidden>
+      <div class="section-heading desktop-game-heading">
+        <div>
+          <span class="eyebrow">Game in progress</span>
+          <h1>Round by round.</h1>
+          <p>Choose this round’s winner and enter the points lost by everyone else.</p>
+        </div>
+        <div class="game-meta">
+          <span class="meta-pill" id="playerCountPill"></span>
+          <span class="meta-pill" id="roundCountPill"></span>
+        </div>
+      </div>
+
+      <div class="game-grid desktop-game-grid">
+        <div class="main-column">
+          <section class="panel round-card" aria-labelledby="roundTitle">
+            <div class="panel-heading">
+              <div>
+                <h2 id="roundTitle">Score sheet</h2>
+                <p>Enter each non-winner’s points lost. The selected winner receives their combined total.</p>
+              </div>
+              <span class="round-badge" id="nextRoundBadge"></span>
+            </div>
+            <div class="auto-select-row">
+              <label class="field-label" for="autoPlayer">Round winner</label>
+              <select id="autoPlayer"></select>
+            </div>
+            <form id="scoreForm" novalidate>
+              <div class="sheet-scroll" id="scoreSheetScroll" role="region" aria-label="Score sheet; scroll horizontally to view every player" tabindex="0">
+                <table class="score-sheet" id="scoreSheet" aria-label="Game score sheet">
+                  <thead id="scoreSheetHead"></thead>
+                  <tbody id="scoreEntryList"></tbody>
+                </table>
+              </div>
+              <div class="sheet-caption" id="sheetCaption">Tab moves across cells. Enter moves down to the next round when the row is complete.</div>
+              <div class="round-total" id="roundTotal" aria-live="polite">Enter the other players’ scores to calculate this round.</div>
+              <div class="round-actions">
+                <span class="form-hint">Enter each loss as a positive number. It is saved as negative; the winner gets the sum.</span>
+                <button class="button button-lime" id="addRoundButton" type="submit" disabled>Add round <span aria-hidden="true">＋</span></button>
+              </div>
+            </form>
+          </section>
+          <div class="finish-row">
+            <button class="button button-primary" id="finishButton" type="button" disabled>Finish game <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+
+        <aside class="side-column">
+          <section class="panel roster-card" aria-labelledby="standingsTitle">
+            <div class="panel-heading">
+              <div>
+                <h2 id="standingsTitle">Current totals</h2>
+              <p>Updates with each score entered</p>
+              </div>
+            </div>
+            <div id="rosterList" class="roster-list"></div>
+            <div class="roster-footer"><span aria-hidden="true">↗</span><span>Highest total wins when the game ends.</span></div>
+          </section>
+        </aside>
+      </div>
+      <div class="mobile-game-view" id="mobileGameView">
+        <div class="mobile-game-heading">
+          <span class="eyebrow">Seven Up · game in progress</span>
+          <div class="mobile-round-title-row">
+            <h1 id="mobileRoundTitle">Round 01</h1>
+            <span class="mobile-round-count" id="mobileRoundCount"></span>
+          </div>
+          <p>Enter each player’s points lost. The winner’s score is added for you.</p>
+        </div>
+
+        <section class="panel mobile-entry-card" aria-labelledby="mobileEntryTitle">
+          <div class="mobile-card-heading">
+            <div>
+              <h2 id="mobileEntryTitle">Add round</h2>
+              <p>Losses are entered as positive numbers and saved as negative.</p>
+            </div>
+          </div>
+          <label class="field-label" for="mobileAutoPlayer">Choose this round’s winner</label>
+          <select id="mobileAutoPlayer"></select>
+          <div class="mobile-loss-list" id="mobileLossList"></div>
+          <div class="mobile-winner-result">
+            <div class="mobile-winner-copy"><span>Winner gets</span><strong id="mobileWinnerName"></strong></div>
+            <div class="mobile-winner-score waiting" id="mobileAutoScore">Waiting</div>
+          </div>
+          <p class="mobile-round-total" id="mobileRoundTotal" aria-live="polite">Enter a points-lost amount for each other player.</p>
+          <button class="button button-lime mobile-add-button" id="mobileAddRoundButton" type="button" disabled>Add round <span aria-hidden="true">＋</span></button>
+        </section>
+
+        <section class="panel mobile-totals-card" aria-labelledby="mobileTotalsTitle">
+          <div class="mobile-card-heading">
+            <div>
+              <h2 id="mobileTotalsTitle">Current totals</h2>
+              <p>Updates with each score entered</p>
+            </div>
+          </div>
+          <div class="mobile-roster-list" id="mobileRosterList"></div>
+        </section>
+
+        <section class="panel mobile-history-card" aria-labelledby="mobileHistoryTitle">
+          <div class="mobile-card-heading">
+            <div>
+              <h2 id="mobileHistoryTitle">Round history</h2>
+              <p>Scores recorded so far</p>
+            </div>
+          </div>
+          <div class="mobile-history-list" id="mobileHistoryList"></div>
+        </section>
+        <button class="button button-primary mobile-finish-button" id="mobileFinishButton" type="button" disabled>Finish game <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+
+    <section class="screen result-wrap" id="resultScreen" hidden aria-live="polite">
+      <div class="result-banner">
+        <div class="winner-label" id="winnerLabel">Game complete</div>
+        <h1 id="winnerHeading"></h1>
+        <p class="result-subtitle" id="resultSubtitle"></p>
+      </div>
+      <section class="panel results-card" aria-labelledby="resultsTitle">
+        <h2 id="resultsTitle">Final score</h2>
+        <div id="resultsList"></div>
+      </section>
+      <div class="result-actions">
+        <button class="button button-primary" id="newGameButton" type="button">Start a new game <span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'seven-up-scorekeeper-v1';
+      const setupScreen = document.getElementById('setupScreen');
+      const gameScreen = document.getElementById('gameScreen');
+      const resultScreen = document.getElementById('resultScreen');
+      const playerCountInput = document.getElementById('playerCount');
+      const nameStep = document.getElementById('nameStep');
+      const nameList = document.getElementById('nameList');
+      const autoPlayer = document.getElementById('autoPlayer');
+      const mobileAutoPlayer = document.getElementById('mobileAutoPlayer');
+      const scoreEntryList = document.getElementById('scoreEntryList');
+      const scoreSheetHead = document.getElementById('scoreSheetHead');
+      const scoreSheet = document.getElementById('scoreSheet');
+      const sheetCaption = document.getElementById('sheetCaption');
+      const roundTotal = document.getElementById('roundTotal');
+      const addRoundButton = document.getElementById('addRoundButton');
+      const rosterList = document.getElementById('rosterList');
+      const mobileLossList = document.getElementById('mobileLossList');
+      const mobileRoundTotal = document.getElementById('mobileRoundTotal');
+      const mobileAddRoundButton = document.getElementById('mobileAddRoundButton');
+      const mobileRosterList = document.getElementById('mobileRosterList');
+      const mobileHistoryList = document.getElementById('mobileHistoryList');
+      const saveState = document.getElementById('saveState');
+      let game = loadGame();
+      let draftScores = game?.draftScores && typeof game.draftScores === 'object' ? { ...game.draftScores } : {};
+      let calculatedPlayerIndex = game?.calculatedPlayerIndex ?? 0;
+      let focusAfterAddIndex = null;
+
+      function loadGame() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+          if (!saved || !Array.isArray(saved.players) || saved.players.length < 2 || !Array.isArray(saved.rounds)) return null;
+          if (!['active', 'finished'].includes(saved.status)) return null;
+          const players = saved.players.map((player, index) => ({ name: String(player.name || `Player ${index + 1}`) }));
+          const rounds = saved.rounds.filter(round => Array.isArray(round.scores) && round.scores.length === players.length && round.scores.every(Number.isFinite));
+          const calculatedPlayerIndex = Number.isInteger(saved.calculatedPlayerIndex) && saved.calculatedPlayerIndex >= 0 && saved.calculatedPlayerIndex < players.length
+            ? saved.calculatedPlayerIndex
+            : players.length - 1;
+          const draftScores = {};
+          if (saved.draftScores && typeof saved.draftScores === 'object') {
+            Object.entries(saved.draftScores).forEach(([index, value]) => {
+              const text = String(value ?? '');
+              if (text.trim() === '') draftScores[index] = '';
+              else if (Number.isFinite(Number(text))) draftScores[index] = String(Math.abs(Number(text)));
+            });
+          }
+          return { players, rounds, status: saved.status, calculatedPlayerIndex, draftScores };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function saveGame() {
+        try {
+          if (game) localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
+          else localStorage.removeItem(STORAGE_KEY);
+          saveState.lastElementChild.textContent = game ? 'Saved on this device' : 'Ready for a game';
+        } catch (_) {
+          saveState.lastElementChild.textContent = 'Game in this browser';
+        }
+      }
+
+      function showScreen(target) {
+        const alreadyVisible = target === 'setup' ? !setupScreen.hidden : target === 'game' ? !gameScreen.hidden : !resultScreen.hidden;
+        setupScreen.hidden = target !== 'setup';
+        gameScreen.hidden = target !== 'game';
+        resultScreen.hidden = target !== 'result';
+        if (!alreadyVisible) window.scrollTo(0, 0);
+      }
+
+      function formatScore(value) {
+        if (value > 0) return `+${value}`;
+        if (value < 0) return `−${Math.abs(value)}`;
+        return '0';
+      }
+
+      function playerLabel(playerIndex) {
+        const name = game.players[playerIndex].name;
+        const normalizedName = name.trim().toLocaleLowerCase();
+        const hasDuplicate = game.players.some((player, index) => index !== playerIndex && player.name.trim().toLocaleLowerCase() === normalizedName);
+        return hasDuplicate ? `${name} · Player ${playerIndex + 1}` : name;
+      }
+
+      function getTotals(includeDraft = false) {
+        const totals = game.players.map((_, playerIndex) => game.rounds.reduce((sum, round) => sum + round.scores[playerIndex], 0));
+        if (includeDraft && game.status === 'active' && game.players.length > 0) {
+          const autoIndex = Number(autoPlayer.value);
+          let enteredLosses = 0;
+          game.players.forEach((_, index) => {
+            if (index === autoIndex) return;
+            const raw = String(draftScores[index] ?? '').trim();
+            if (!raw || !Number.isInteger(Number(raw)) || Number(raw) < 0) return;
+            const loss = Number(raw);
+            totals[index] -= loss;
+            enteredLosses += loss;
+          });
+          totals[autoIndex] += enteredLosses;
+        }
+        return totals;
+      }
+
+      function getDraftRoundScores() {
+        const autoIndex = Number(autoPlayer.value);
+        const lossTotal = game.players.reduce((sum, _, index) => index === autoIndex ? sum : sum + Number(draftScores[index]), 0);
+        const scores = game.players.map((_, index) => index === autoIndex ? lossTotal : -Number(draftScores[index]));
+        return scores;
+      }
+
+      function makeNameInputs(count) {
+        nameList.replaceChildren();
+        for (let index = 0; index < count; index += 1) {
+          const row = document.createElement('div');
+          row.className = 'name-row';
+          const number = document.createElement('span');
+          number.className = 'name-index';
+          number.textContent = String(index + 1).padStart(2, '0');
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = 32;
+          input.autocomplete = 'off';
+          input.placeholder = `Player ${index + 1}`;
+          input.setAttribute('aria-label', `Player ${index + 1} name`);
+          row.append(number, input);
+          nameList.append(row);
+        }
+        nameStep.hidden = false;
+        nameList.querySelector('input')?.focus({ preventScroll: true });
+      }
+
+      function buildAutoPlayerOptions() {
+        [autoPlayer, mobileAutoPlayer].forEach(select => {
+          select.replaceChildren();
+          game.players.forEach((player, index) => {
+            const option = document.createElement('option');
+            option.value = String(index);
+            option.textContent = playerLabel(index);
+            select.append(option);
+          });
+        });
+        autoPlayer.value = String(calculatedPlayerIndex);
+        mobileAutoPlayer.value = String(calculatedPlayerIndex);
+      }
+
+      function buildScoreInputs() {
+        const autoIndex = Number(autoPlayer.value);
+        delete draftScores[autoIndex];
+        scoreSheet.style.width = `${64 + game.players.length * 126}px`;
+        sheetCaption.textContent = game.players.length > 4
+          ? 'Scroll horizontally to see every player. Tab moves across cells; Enter moves down when the row is complete.'
+          : 'Tab moves across cells. Enter moves down to the next round when the row is complete.';
+        scoreSheetHead.replaceChildren();
+        scoreEntryList.replaceChildren();
+
+        const headerRow = document.createElement('tr');
+        const roundHeader = document.createElement('th');
+        roundHeader.scope = 'col';
+        roundHeader.textContent = 'Round';
+        headerRow.append(roundHeader);
+        game.players.forEach((player, index) => {
+          const th = document.createElement('th');
+          th.scope = 'col';
+          th.textContent = playerLabel(index);
+          th.title = playerLabel(index);
+          if (index === autoIndex) th.classList.add('calculated-column');
+          headerRow.append(th);
+        });
+        scoreSheetHead.append(headerRow);
+
+        game.rounds.forEach((round, roundIndex) => {
+          const row = document.createElement('tr');
+          row.className = 'sheet-history-row';
+          const roundCell = document.createElement('td');
+          roundCell.className = 'sheet-round';
+          roundCell.textContent = `R${String(roundIndex + 1).padStart(2, '0')}`;
+          row.append(roundCell);
+          round.scores.forEach(scoreValue => {
+            const cell = document.createElement('td');
+            cell.className = 'sheet-value';
+            if (scoreValue < 0) cell.classList.add('negative');
+            if (scoreValue > 0) cell.classList.add('positive');
+            cell.textContent = formatScore(scoreValue);
+            row.append(cell);
+          });
+          scoreEntryList.append(row);
+        });
+
+        const activeRow = document.createElement('tr');
+        activeRow.className = 'score-entry';
+        const roundCell = document.createElement('td');
+        roundCell.className = 'sheet-round';
+        roundCell.textContent = `R${String(game.rounds.length + 1).padStart(2, '0')}`;
+        activeRow.append(roundCell);
+        game.players.forEach((player, index) => {
+          const cell = document.createElement('td');
+          cell.dataset.playerIndex = String(index);
+          if (index === autoIndex) {
+            cell.className = 'sheet-cell sheet-auto';
+            const result = document.createElement('div');
+            result.className = 'sheet-computed waiting';
+            result.textContent = 'Waiting';
+            result.setAttribute('aria-label', `${playerLabel(index)} calculated score`);
+            cell.append(result);
+          } else {
+            cell.className = 'sheet-cell';
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.step = '1';
+            input.inputMode = 'numeric';
+            input.placeholder = 'Points lost';
+            input.value = draftScores[index] ?? '';
+            input.setAttribute('aria-label', `${playerLabel(index)}, round ${game.rounds.length + 1} points lost; saved as negative`);
+            input.dataset.playerIndex = String(index);
+            cell.append(input);
+          }
+          activeRow.append(cell);
+        });
+        scoreEntryList.append(activeRow);
+        updateRoundCalculation();
+        const sheetScroll = document.getElementById('scoreSheetScroll');
+        sheetScroll.scrollTop = sheetScroll.scrollHeight;
+      }
+
+      function updateRoundCalculation() {
+        const autoIndex = Number(autoPlayer.value);
+        let lossTotal = 0;
+        let complete = true;
+        game.players.forEach((_, index) => {
+          if (index === autoIndex) return;
+          const value = String(draftScores[index] ?? '').trim();
+          if (value === '' || !Number.isInteger(Number(value)) || Number(value) < 0) complete = false;
+          else lossTotal += Number(value);
+        });
+        const autoCell = scoreEntryList.querySelector(`.score-entry [data-player-index="${autoIndex}"]`);
+        const output = autoCell.querySelector('.sheet-computed');
+        document.getElementById('mobileWinnerName').textContent = playerLabel(autoIndex);
+        if (complete) {
+          output.textContent = formatScore(lossTotal);
+          output.classList.remove('waiting');
+          roundTotal.textContent = `Losses total ${formatScore(-lossTotal)} · ${playerLabel(autoIndex)} gets ${formatScore(lossTotal)} · round total 0`;
+          document.getElementById('mobileAutoScore').textContent = formatScore(lossTotal);
+          document.getElementById('mobileAutoScore').classList.remove('waiting');
+          mobileRoundTotal.textContent = `Losses total ${formatScore(-lossTotal)} · round winner gets ${formatScore(lossTotal)}.`;
+        } else {
+          output.textContent = 'Waiting';
+          output.classList.add('waiting');
+          roundTotal.textContent = 'Enter a whole-number points-lost amount in each blank cell.';
+          document.getElementById('mobileAutoScore').textContent = 'Waiting';
+          document.getElementById('mobileAutoScore').classList.add('waiting');
+          mobileRoundTotal.textContent = 'Enter a points-lost amount for each other player.';
+        }
+        game.draftScores = { ...draftScores };
+        game.calculatedPlayerIndex = autoIndex;
+        addRoundButton.disabled = !complete;
+        mobileAddRoundButton.disabled = !complete;
+        renderRoster();
+        renderMobileRoster();
+      }
+
+      function renderRoster() {
+        rosterList.replaceChildren();
+        const totals = getTotals(true);
+        const standings = game.players.map((player, index) => ({ player, index, total: totals[index] })).sort((a, b) => b.total - a.total || a.index - b.index);
+        standings.forEach(({ player, index, total }) => {
+          const row = document.createElement('div');
+          row.className = 'roster-person';
+          const avatar = document.createElement('span');
+          avatar.className = 'avatar';
+          avatar.textContent = player.name.trim().slice(0, 1).toUpperCase() || String(index + 1);
+          const name = document.createElement('span');
+          name.className = 'roster-name';
+          name.textContent = playerLabel(index);
+          const score = document.createElement('span');
+          score.className = 'roster-score';
+          if (total < 0) score.classList.add('negative');
+          if (total > 0) score.classList.add('positive');
+          score.textContent = formatScore(total);
+          row.append(avatar, name, score);
+          rosterList.append(row);
+        });
+      }
+
+      function renderMobileRoster() {
+        mobileRosterList.replaceChildren();
+        const totals = getTotals(true);
+        const standings = game.players.map((player, index) => ({ player, index, total: totals[index] })).sort((a, b) => b.total - a.total || a.index - b.index);
+        standings.forEach(({ player, index, total }) => {
+          const row = document.createElement('div');
+          row.className = 'mobile-roster-person';
+          const name = document.createElement('span');
+          name.className = 'mobile-roster-name';
+          name.textContent = playerLabel(index);
+          const score = document.createElement('span');
+          score.className = 'mobile-roster-score';
+          if (total < 0) score.classList.add('negative');
+          if (total > 0) score.classList.add('positive');
+          score.textContent = formatScore(total);
+          row.append(name, score);
+          mobileRosterList.append(row);
+        });
+      }
+
+      function renderMobileHistory() {
+        mobileHistoryList.replaceChildren();
+        if (game.rounds.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'mobile-history-empty';
+          empty.textContent = 'Round scores will appear here.';
+          mobileHistoryList.append(empty);
+          return;
+        }
+        game.rounds.forEach((round, roundIndex) => {
+          const item = document.createElement('div');
+          item.className = 'mobile-history-item';
+          const title = document.createElement('div');
+          title.className = 'mobile-history-round';
+          title.textContent = `ROUND ${String(roundIndex + 1).padStart(2, '0')}`;
+          const scores = document.createElement('div');
+          scores.className = 'mobile-history-scores';
+          round.scores.forEach((scoreValue, playerIndex) => {
+            const score = document.createElement('div');
+            score.className = 'mobile-history-score';
+            const name = document.createElement('span');
+            name.textContent = playerLabel(playerIndex);
+            const value = document.createElement('b');
+            if (scoreValue < 0) value.classList.add('negative');
+            if (scoreValue > 0) value.classList.add('positive');
+            value.textContent = formatScore(scoreValue);
+            score.append(name, value);
+            scores.append(score);
+          });
+          item.append(title, scores);
+          mobileHistoryList.append(item);
+        });
+      }
+
+      function buildMobileGame() {
+        const autoIndex = Number(autoPlayer.value);
+        document.getElementById('mobileRoundTitle').textContent = `Round ${String(game.rounds.length + 1).padStart(2, '0')}`;
+        document.getElementById('mobileRoundCount').textContent = `${game.players.length} players · ${game.rounds.length} played`;
+        mobileAutoPlayer.value = String(autoIndex);
+        mobileLossList.replaceChildren();
+        game.players.forEach((player, index) => {
+          if (index === autoIndex) return;
+          const row = document.createElement('div');
+          row.className = 'mobile-loss-row';
+          const copy = document.createElement('div');
+          copy.className = 'mobile-loss-copy';
+          const name = document.createElement('span');
+          name.className = 'mobile-loss-name';
+          name.textContent = playerLabel(index);
+          const label = document.createElement('span');
+          label.className = 'mobile-loss-label';
+          label.textContent = 'Points lost';
+          copy.append(name, label);
+          const control = document.createElement('div');
+          control.className = 'mobile-loss-control';
+          const prefix = document.createElement('span');
+          prefix.className = 'mobile-loss-prefix';
+          prefix.textContent = '−';
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.min = '0';
+          input.step = '1';
+          input.inputMode = 'numeric';
+          input.placeholder = '0';
+          input.value = draftScores[index] ?? '';
+          input.dataset.playerIndex = String(index);
+          input.setAttribute('aria-label', `${playerLabel(index)} points lost; saved as negative`);
+          control.append(prefix, input);
+          row.append(copy, control);
+          mobileLossList.append(row);
+        });
+        renderMobileRoster();
+        renderMobileHistory();
+        updateRoundCalculation();
+        document.getElementById('mobileFinishButton').disabled = game.rounds.length === 0;
+      }
+
+      function draftIsComplete() {
+        const autoIndex = Number(autoPlayer.value);
+        return game.players.every((_, index) => {
+          if (index === autoIndex) return true;
+          const value = String(draftScores[index] ?? '').trim();
+          return value !== '' && Number.isInteger(Number(value)) && Number(value) >= 0;
+        });
+      }
+
+      function addCurrentRound() {
+        if (!draftIsComplete()) return;
+        const autoIndex = Number(autoPlayer.value);
+        game.rounds.push({ scores: getDraftRoundScores() });
+        calculatedPlayerIndex = autoIndex;
+        draftScores = {};
+        game.draftScores = {};
+        game.calculatedPlayerIndex = autoIndex;
+        const focusIndex = focusAfterAddIndex;
+        focusAfterAddIndex = null;
+        renderGame();
+        if (focusIndex !== null) {
+          requestAnimationFrame(() => {
+            const nextInput = scoreEntryList.querySelector(`input[data-player-index="${focusIndex}"]`) || scoreEntryList.querySelector('input');
+            nextInput?.focus();
+          });
+        }
+      }
+
+      function finishGame() {
+        const autoIndex = Number(autoPlayer.value);
+        const hasDraftScores = game.players.some((_, index) => index !== autoIndex && String(draftScores[index] ?? '').trim() !== '');
+        if (hasDraftScores && !draftIsComplete()) {
+          const message = 'Enter a points-lost amount for every other player before finishing.';
+          roundTotal.textContent = message;
+          mobileRoundTotal.textContent = message;
+          const mobileInput = mobileLossList.querySelector('input');
+          const desktopInput = scoreEntryList.querySelector('input');
+          const mobileLayoutIsVisible = getComputedStyle(document.getElementById('mobileGameView')).display !== 'none';
+          (mobileLayoutIsVisible ? mobileInput : desktopInput)?.focus();
+          return;
+        }
+        if (hasDraftScores) {
+          game.rounds.push({ scores: getDraftRoundScores() });
+          draftScores = {};
+          game.draftScores = {};
+        }
+        if (game.rounds.length === 0) return;
+        game.status = 'finished';
+        renderResults();
+      }
+
+      function renderGame() {
+        showScreen('game');
+        document.getElementById('playerCountPill').textContent = `${game.players.length} players`;
+        document.getElementById('roundCountPill').textContent = `${game.rounds.length} ${game.rounds.length === 1 ? 'round' : 'rounds'}`;
+        document.getElementById('nextRoundBadge').textContent = `ROUND ${String(game.rounds.length + 1).padStart(2, '0')}`;
+        buildAutoPlayerOptions();
+        buildScoreInputs();
+        buildMobileGame();
+        renderRoster();
+        document.getElementById('finishButton').disabled = game.rounds.length === 0;
+        saveGame();
+      }
+
+      function renderResults() {
+        const totals = getTotals();
+        const highest = Math.max(...totals);
+        const winners = game.players.map((_, index) => ({ index })).filter(({ index }) => totals[index] === highest);
+        const names = winners.map(({ index }) => playerLabel(index));
+        document.getElementById('winnerLabel').textContent = winners.length > 1 ? 'SEVEN UP · SHARED WIN' : 'SEVEN UP · GAME WINNER';
+        document.getElementById('winnerHeading').textContent = winners.length > 1 ? `${names.join(' & ')} tie!` : `${names[0]} wins!`;
+        document.getElementById('resultSubtitle').textContent = `Seven Up · ${game.rounds.length} ${game.rounds.length === 1 ? 'round' : 'rounds'} played · winning total ${formatScore(highest)}`;
+        const list = document.getElementById('resultsList');
+        list.replaceChildren();
+        const sorted = game.players.map((_, index) => ({ name: playerLabel(index), total: totals[index], index })).sort((a, b) => b.total - a.total || a.index - b.index);
+        sorted.forEach((player, index) => {
+          const row = document.createElement('div');
+          row.className = 'result-row';
+          const place = document.createElement('span');
+          place.className = `place${player.total === highest ? ' first' : ''}`;
+          place.textContent = String(index + 1).padStart(2, '0');
+          const name = document.createElement('span');
+          name.className = 'result-player';
+          name.textContent = player.name;
+          const total = document.createElement('span');
+          total.className = 'result-total';
+          if (player.total < 0) total.classList.add('negative');
+          if (player.total > 0) total.classList.add('positive');
+          total.textContent = formatScore(player.total);
+          row.append(place, name, total);
+          list.append(row);
+        });
+        showScreen('result');
+        saveGame();
+      }
+
+      document.getElementById('continueButton').addEventListener('click', () => {
+        const count = Number(playerCountInput.value);
+        if (!Number.isInteger(count) || count < 2 || count > 20) {
+          playerCountInput.setCustomValidity('Choose between 2 and 20 players.');
+          playerCountInput.reportValidity();
+          return;
+        }
+        playerCountInput.setCustomValidity('');
+        makeNameInputs(count);
+      });
+      playerCountInput.addEventListener('input', () => {
+        nameStep.hidden = true;
+        playerCountInput.setCustomValidity('');
+      });
+      document.getElementById('startButton').addEventListener('click', () => {
+        const names = [...nameList.querySelectorAll('input')].map((input, index) => input.value.trim() || `Player ${index + 1}`);
+        game = { players: names.map(name => ({ name })), rounds: [], status: 'active', draftScores: {}, calculatedPlayerIndex: names.length - 1 };
+        calculatedPlayerIndex = names.length - 1;
+        draftScores = {};
+        renderGame();
+      });
+      function selectRoundWinner(value) {
+        calculatedPlayerIndex = Number(value);
+        delete draftScores[calculatedPlayerIndex];
+        game.calculatedPlayerIndex = calculatedPlayerIndex;
+        autoPlayer.value = String(calculatedPlayerIndex);
+        mobileAutoPlayer.value = String(calculatedPlayerIndex);
+        buildScoreInputs();
+        buildMobileGame();
+        saveGame();
+      }
+      autoPlayer.addEventListener('change', () => selectRoundWinner(autoPlayer.value));
+      mobileAutoPlayer.addEventListener('change', () => selectRoundWinner(mobileAutoPlayer.value));
+      function handleScoreInput(event) {
+        const input = event.target.closest('input[data-player-index]');
+        if (!input) return;
+        const index = input.dataset.playerIndex;
+        draftScores[index] = input.value;
+        [scoreEntryList, mobileLossList].forEach(list => {
+          const syncedInput = list.querySelector(`input[data-player-index="${index}"]`);
+          if (syncedInput && syncedInput !== input) syncedInput.value = input.value;
+        });
+        updateRoundCalculation();
+        saveGame();
+      }
+      scoreEntryList.addEventListener('input', handleScoreInput);
+      mobileLossList.addEventListener('input', handleScoreInput);
+      scoreEntryList.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' || !event.target.matches('input')) return;
+        event.preventDefault();
+        if (!addRoundButton.disabled) {
+          focusAfterAddIndex = Number(event.target.dataset.playerIndex);
+          document.getElementById('scoreForm').requestSubmit();
+          return;
+        }
+        const inputs = [...scoreEntryList.querySelectorAll('input')];
+        const nextInput = inputs[inputs.indexOf(event.target) + 1] || inputs.find(input => input.value.trim() === '');
+        nextInput?.focus();
+      });
+      document.getElementById('scoreForm').addEventListener('submit', event => {
+        event.preventDefault();
+        addCurrentRound();
+      });
+      mobileAddRoundButton.addEventListener('click', addCurrentRound);
+      document.getElementById('finishButton').addEventListener('click', finishGame);
+      document.getElementById('mobileFinishButton').addEventListener('click', finishGame);
+      document.getElementById('newGameButton').addEventListener('click', () => {
+        game = null;
+        calculatedPlayerIndex = 0;
+        draftScores = {};
+        nameStep.hidden = true;
+        nameList.replaceChildren();
+        playerCountInput.value = '4';
+        saveGame();
+        showScreen('setup');
+      });
+
+      if (game) {
+        if (game.status === 'finished' && game.rounds.length > 0) renderResults();
+        else { game.status = 'active'; renderGame(); }
+      } else {
+        saveGame();
+      }
+    })();
+  </script>
+</body>
+</html>
