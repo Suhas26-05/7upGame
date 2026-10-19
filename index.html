@@ -3,22 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#132c27">
-  <title>Seven Up — Scorekeeper</title>
+  <meta name="theme-color" content="#f4f0e7">
+  <title>Scorekeeper</title>
   <style>
     :root {
       color-scheme: light;
-      --ink: #172b27;
-      --muted: #71827c;
-      --green: #153a31;
-      --green-2: #24594a;
-      --mint: #d9eee4;
-      --lime: #c5e66b;
-      --paper: #f6f7f0;
-      --card: #fffefa;
-      --line: #e5e9df;
-      --orange: #e99b5c;
-      --shadow: 0 18px 55px rgba(30, 57, 46, .09);
+      --ink: #293544;
+      --muted: #77766e;
+      --green: #263b52;
+      --green-2: #596b79;
+      --mint: #e9e3d7;
+      --lime: #e9c875;
+      --paper: #f4f0e7;
+      --card: #fffdf8;
+      --line: #e3dccf;
+      --orange: #bc614b;
+      --shadow: 0 12px 32px rgba(54, 47, 37, .08);
     }
 
     * { box-sizing: border-box; }
@@ -28,16 +28,14 @@
       min-height: 100vh;
       min-height: 100svh;
       overflow-x: hidden;
-      background:
-        radial-gradient(ellipse at 88% 12%, rgba(197, 230, 107, .19), transparent 28rem),
-        var(--paper);
+      background: var(--paper);
       color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     button, input, select { font: inherit; }
     button { cursor: pointer; }
     button:focus-visible, input:focus-visible, select:focus-visible {
-      outline: 3px solid rgba(121, 166, 90, .48);
+      outline: 3px solid rgba(188, 97, 75, .42);
       outline-offset: 2px;
     }
     .topbar {
@@ -60,6 +58,8 @@
     .brand-name { font-size: 13px; font-weight: 850; letter-spacing: .12em; }
     .brand-caption { margin-top: 5px; color: var(--muted); font-size: 11px; letter-spacing: .02em; }
     .save-state { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .save-state[data-state="saving"] .save-dot { background: #d39b43; }
+    .save-state[data-state="error"] .save-dot { background: #b66242; }
     .save-dot { width: 7px; height: 7px; border-radius: 50%; background: #7da16c; }
     .shell { width: min(1120px, calc(100% - 48px)); min-width: 0; margin: clamp(32px, 6vh, 58px) auto 64px; }
     .screen { animation: rise .35s ease both; }
@@ -108,7 +108,7 @@
     .button:disabled { cursor: not-allowed; opacity: .45; }
     .full { width: 100%; }
     .name-step { margin-top: 23px; padding-top: 21px; border-top: 1px solid var(--line); }
-    .name-list { display: grid; gap: 11px; max-height: min(34svh, 280px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 1px 4px 2px 0; margin: 17px 0 18px; }
+    .name-list { display: grid; gap: 11px; max-height: min(34svh, 280px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scroll-padding-block: 6px; padding: 6px 7px 6px 3px; margin: 11px 0 18px; }
     .name-row { display: grid; grid-template-columns: 27px 1fr; gap: 10px; align-items: center; }
     .name-index { width: 25px; height: 25px; border-radius: 9px; display: grid; place-items: center; background: #eff3e9; color: var(--green-2); font-size: 11px; font-weight: 800; }
     .name-hint { margin: -7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
@@ -211,7 +211,7 @@
       .result-banner, .results-card, .result-actions { grid-column: 1; grid-row: auto; }
       .result-banner { min-height: 0; }
     }
-    @media (max-width: 540px), (max-height: 480px) and (orientation: landscape) and (pointer: coarse) {
+    @media (max-width: 820px), (max-height: 480px) and (orientation: landscape) and (pointer: coarse) {
       .topbar { min-height: 64px; padding: 0 16px; }
       .brand-caption { display: none; }
       .save-state { gap: 6px; font-size: 10px; }
@@ -283,6 +283,7 @@
       .mobile-history-score b.negative { color: #b66242; }
       .mobile-history-score b.positive { color: #3b7654; }
       .mobile-finish-button { margin-top: 0; }
+      input, select { font-size: 16px; }
     }
     @media (max-width: 420px) {
       .roster-list { grid-template-columns: minmax(0, 1fr); }
@@ -317,6 +318,336 @@
       .name-list { max-height: min(30svh, 220px); gap: 8px; margin: 12px 0 14px; }
       .name-row input { min-height: 42px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+    .topbar {
+      background: rgba(255, 253, 248, .72);
+      border-bottom-color: #e3dccf;
+    }
+    .brand-mark {
+      border-radius: 10px;
+      background: var(--lime);
+      box-shadow: none;
+    }
+    .save-dot { background: #68805e; box-shadow: none; }
+    .save-state[data-state="saving"] .save-dot { background: #b17b31; box-shadow: none; }
+    .save-state[data-state="error"] .save-dot { background: var(--orange); box-shadow: none; }
+    .eyebrow {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--green);
+      letter-spacing: .13em;
+    }
+    .eyebrow::before { width: 17px; background: var(--orange); border-radius: 0; }
+    h1, .setup-card h2 {
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 780;
+      letter-spacing: -.055em;
+      text-wrap: balance;
+    }
+    h1 { font-size: clamp(38px, 5.2vw, 60px); line-height: 1; }
+    .setup-card h2 { font-size: 25px; }
+    .intro { color: #696b67; }
+    .step-number {
+      border: 0;
+      border-radius: 6px;
+      background: #e8e1d3;
+      color: var(--green);
+    }
+    .panel {
+      border-color: #e5ded1;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+    .setup-card { position: relative; background: var(--card); }
+    .setup-card::before {
+      position: absolute;
+      top: 0;
+      right: 24px;
+      left: 24px;
+      height: 3px;
+      border-radius: 0 0 2px 2px;
+      background: var(--orange);
+      content: "";
+    }
+    input, select {
+      border-color: #ddd6c9;
+      border-radius: 8px;
+      background-color: #fffefa;
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    input:hover:not(:disabled), select:hover { border-color: #aaa08f; }
+    input:focus-visible, select:focus-visible, button:focus-visible {
+      outline-color: rgba(188, 97, 75, .4);
+    }
+    input:disabled { background: #eee9df; border-color: #ddd6c9; }
+    .button { min-height: 46px; border-radius: 8px; box-shadow: none; }
+    .button-primary, .button-primary:hover:not(:disabled) {
+      color: #fffdf8;
+      background: var(--green);
+      box-shadow: none;
+    }
+    .button-primary:hover:not(:disabled) { background: #344d65; }
+    .button-lime, .button-lime:hover:not(:disabled) {
+      color: #362f21;
+      background: var(--lime);
+      box-shadow: none;
+    }
+    .button-lime:hover:not(:disabled) { background: #dfb950; }
+    .button-secondary, .button-secondary:hover:not(:disabled) {
+      color: var(--green);
+      border: 1px solid #d9d1c2;
+      background: #eee9df;
+    }
+    .button-secondary:hover:not(:disabled) { background: #e5dece; }
+    .button-quiet { color: #5f625e; }
+    .field-label { color: #454b4d; }
+    .name-index, .avatar, .place {
+      border-radius: 7px;
+      color: var(--green);
+      background: #ebe5d9;
+    }
+    .name-hint, .card-description, .panel-heading p, .section-heading p,
+    .brand-caption, .save-state, .form-hint, .round-total { color: var(--muted); }
+    .meta-pill, .mobile-round-count, .round-badge {
+      border: 1px solid #e0d8c9;
+      border-radius: 7px;
+      color: #4a5863;
+      background: #eee9df;
+    }
+    .sheet-scroll { border-color: #ded6c8; background: var(--card); scrollbar-color: #b7aa94 #eee9df; }
+    .score-sheet th {
+      color: #4e5860;
+      background: #eee9df;
+      border-color: #ded6c8;
+    }
+    .score-sheet th.calculated-column { color: var(--green); background: #e9dfc6; }
+    .score-sheet td { color: #464f54; border-color: #ece6db; }
+    .score-sheet td.sheet-round { color: #77766e; background: #f5f1e9; }
+    .score-sheet td.sheet-value.negative, .result-total.negative,
+    .mobile-history-score b.negative { color: #ae5141; }
+    .score-sheet td.sheet-value.positive, .result-total.positive,
+    .mobile-history-score b.positive { color: #55704f; }
+    .score-sheet tr.score-entry td { background: #fffdf8; }
+    .score-sheet tr.score-entry td.sheet-round { color: var(--green); background: #eee9df; }
+    .score-sheet td.sheet-cell:focus-within { outline-color: #bc614b; }
+    .score-sheet input:focus-visible { box-shadow: inset 0 0 0 2px #bc614b; }
+    .score-sheet td.sheet-auto { color: var(--green); background: #eee9df !important; }
+    .sheet-caption, .roster-footer span:first-child { color: #7d715b; }
+    .roster-name, .mobile-roster-name { color: #535a5d; }
+    .roster-score.negative, .mobile-roster-score.negative { color: #ae5141; }
+    .roster-score.positive, .mobile-roster-score.positive { color: #55704f; }
+    .mobile-loss-row { border-color: #e3dccf; background: #fffdf8; }
+    .mobile-loss-name { color: #35424b; }
+    .mobile-loss-label, .mobile-winner-copy span, .mobile-history-round { color: #77766e; }
+    .mobile-loss-prefix { color: #ae5141; }
+    .mobile-loss-control input { border-color: #ddd6c9; background: #fffefa; }
+    .mobile-winner-result { border-color: #d8cfbb; background: #f0eadc; }
+    .mobile-winner-copy strong { color: var(--green); }
+    .mobile-winner-score { color: #55704f; }
+    .mobile-round-total, .mobile-history-empty { color: var(--muted); }
+    .mobile-roster-person { border: 1px solid #e8e1d5; background: #f7f3eb; }
+    .mobile-history-item { border-color: #e8e1d5; }
+    .mobile-history-score { background: #f3efe7; }
+    .mobile-history-score span { color: #5e6362; }
+    .mobile-history-score b { color: #35424b; }
+    .result-banner {
+      background: #153a31;
+      border-radius: 25px;
+      box-shadow: 0 22px 50px rgba(21, 58, 49, .18);
+    }
+    .result-banner::after {
+      content: "✦";
+      color: rgba(233, 200, 117, .2);
+    }
+    .result-banner h1 {
+      color: #fffdf8;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(38px, 6vw, 62px);
+      font-weight: 760;
+      letter-spacing: -.065em;
+    }
+    .winner-label { color: #e5dfbd; }
+    .result-subtitle { color: rgba(255, 253, 248, .74); }
+    .place.first { color: #58491f; background: #efdfaa; }
+    .result-player { color: var(--ink); }
+    @media (max-width: 540px), (max-height: 480px) and (orientation: landscape) and (pointer: coarse) {
+      .mobile-roster-person, .mobile-history-item { background-color: #f7f3eb; }
+    }
+    .setup-layout {
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+      gap: clamp(28px, 5vw, 64px);
+      align-items: center;
+    }
+    .setup-story {
+      min-width: 0;
+      padding: clamp(24px, 3.6vw, 42px);
+      border-radius: 22px;
+      color: #fffdf8;
+      background: #183f37;
+      box-shadow: 0 18px 42px rgba(29, 54, 45, .14);
+    }
+    .setup-story .eyebrow { color: #e7dcae; }
+    .setup-story .eyebrow::before { background: #d9a36e; }
+    .setup-story h1 {
+      max-width: 480px;
+      margin: 20px 0 14px;
+      color: #fffdf8;
+      font-size: clamp(40px, 5vw, 58px);
+      line-height: .99;
+    }
+    .setup-story .intro {
+      max-width: 420px;
+      margin-bottom: 25px;
+      color: #d3ddd5;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .score-example {
+      max-width: 410px;
+      padding: 15px 17px 10px;
+      border: 1px solid rgba(255, 255, 255, .6);
+      border-radius: 12px;
+      color: var(--ink);
+      background: #fffdf8;
+      box-shadow: 0 7px 18px rgba(12, 33, 28, .12);
+    }
+    .score-example-heading, .score-example-row, .score-example-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .score-example-heading {
+      margin-bottom: 6px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--line);
+      color: #79756d;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+    .score-example-row {
+      min-height: 32px;
+      color: #505853;
+      font-size: 11px;
+    }
+    .score-example-row strong, .score-example-footer strong {
+      min-width: 42px;
+      color: #a75443;
+      text-align: right;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-example-winner {
+      margin: 4px -7px 0;
+      padding: 2px 7px;
+      border-radius: 6px;
+      color: #253f34;
+      background: #edf1df;
+    }
+    .score-example-winner strong { color: #416a4d; }
+    .score-example-footer {
+      margin-top: 7px;
+      padding-top: 8px;
+      border-top: 1px dashed #d8d1c4;
+      color: #77766e;
+      font-size: 10px;
+    }
+    .score-example-footer strong { color: var(--green); }
+    .setup-story .how-it-works {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 22px;
+      color: #e3e8df;
+      font-size: 10px;
+    }
+    .setup-story .how-item {
+      min-width: 0;
+      justify-content: flex-start;
+      gap: 7px;
+      line-height: 1.3;
+    }
+    .setup-story .step-number {
+      flex: none;
+      width: 21px;
+      height: 21px;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 50%;
+      color: #f1e1b2;
+      background: rgba(255, 255, 255, .08);
+      font-size: 10px;
+    }
+    .setup-card {
+      padding: clamp(24px, 3.3vw, 36px);
+      border-radius: 18px;
+      box-shadow: 0 14px 36px rgba(54, 47, 37, .09);
+    }
+    .setup-card::before { right: 30px; left: 30px; }
+    .setup-card .card-kicker { color: #8d624e; }
+    .setup-card h2 { margin-bottom: 9px; font-size: 27px; }
+    .setup-card .card-description { margin-bottom: 26px; }
+    .setup-card .count-control input { min-height: 50px; }
+    .setup-card #continueButton { min-height: 50px; padding-inline: 21px; }
+    .setup-card .name-step { margin-top: 24px; padding-top: 20px; }
+    .setup-card .name-list { gap: 9px; }
+    .setup-card .name-row input { min-height: 48px; }
+    .setup-card #startButton { min-height: 52px; }
+    @media (max-width: 1080px) {
+      .setup-layout { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+      .setup-story, .setup-card { width: 100%; max-width: 720px; justify-self: center; }
+      .setup-story { padding: 28px; }
+      .setup-story h1 { max-width: none; font-size: clamp(38px, 7vw, 50px); }
+      .setup-story .intro { max-width: 600px; }
+      .score-example { max-width: none; }
+      #setupScreen { min-height: 0; }
+    }
+    @media (min-width: 781px) and (max-width: 1080px) {
+      .setup-layout { grid-template-columns: minmax(0, 1fr) minmax(340px, .95fr); gap: 22px; }
+      .setup-story { padding: 24px; }
+      .setup-story h1 { font-size: clamp(34px, 4vw, 42px); }
+      .setup-story .intro { font-size: 13px; }
+      .setup-story .how-it-works { grid-template-columns: 1fr; gap: 7px; }
+      .setup-story .how-item { font-size: 11px; }
+      .setup-card { padding: 24px; }
+    }
+    @media (max-width: 540px), (max-height: 480px) and (orientation: landscape) and (pointer: coarse) {
+      .setup-story { padding: 22px 20px; border-radius: 16px; }
+      .setup-story h1 { margin: 14px 0 10px; font-size: clamp(34px, 9vw, 42px); }
+      .setup-story .intro { margin-bottom: 17px; font-size: 13px; }
+      .score-example { padding: 11px 13px 8px; }
+      .score-example-row { min-height: 28px; }
+      .setup-story .how-it-works { gap: 5px; margin-top: 15px; font-size: 9px; }
+      .setup-story .how-item { gap: 5px; }
+      .setup-story .step-number { width: 19px; height: 19px; }
+      .score-example {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+        padding: 9px;
+      }
+      .score-example-heading, .score-example-footer { grid-column: 1 / -1; }
+      .score-example-heading { margin: 0; padding-bottom: 6px; }
+      .score-example-row {
+        min-height: 39px;
+        display: grid;
+        align-content: center;
+        justify-items: center;
+        gap: 2px;
+        border-radius: 6px;
+        background: #f5f1e9;
+        font-size: 9px;
+        text-align: center;
+      }
+      .score-example-row strong { min-width: 0; font-size: 11px; }
+      .score-example-winner { margin: 0; padding: 0; background: #edf1df; }
+      .score-example-footer { margin-top: 1px; padding-top: 5px; }
+      .setup-card { padding: 21px 19px; }
+    }
   </style>
 </head>
 <body>
@@ -328,20 +659,27 @@
         <div class="brand-caption">A little less math. A lot more game.</div>
       </div>
     </div>
-    <div class="save-state" id="saveState"><span class="save-dot" aria-hidden="true"></span><span>Ready for a game</span></div>
+    <div class="save-state" id="saveState" role="status" aria-live="polite"><span class="save-dot" aria-hidden="true"></span><span>Ready for a game</span></div>
   </header>
 
   <main class="shell">
     <section class="screen" id="setupScreen">
       <div class="setup-layout">
-        <div>
+        <div class="setup-story">
           <span class="eyebrow">Your 7up scorecard</span>
-          <h1>Keep the game moving.</h1>
-          <p class="intro">Track every round, let the scorecard do the balancing, and find out who came out on top.</p>
+          <h1>Good games.<br>Close scores.</h1>
+          <p class="intro">Keep everyone’s points in one place. Add the losses and the round winner’s score takes care of itself.</p>
+          <div class="score-example" aria-label="Example round: two players lose four and two points; the winner gains six points.">
+            <div class="score-example-heading"><span>ONE ROUND</span><span>EXAMPLE</span></div>
+            <div class="score-example-row"><span>Player 1</span><strong>−4</strong></div>
+            <div class="score-example-row"><span>Player 2</span><strong>−2</strong></div>
+            <div class="score-example-row score-example-winner"><span>Round winner</span><strong>+6</strong></div>
+            <div class="score-example-footer"><span>Round total</span><strong>0</strong></div>
+          </div>
           <div class="how-it-works" aria-label="How it works">
-            <div class="how-item"><span class="step-number">01</span> Add players</div>
-            <div class="how-item"><span class="step-number">02</span> Score rounds</div>
-            <div class="how-item"><span class="step-number">03</span> Find the winner</div>
+            <div class="how-item"><span class="step-number">1</span><span>Add players</span></div>
+            <div class="how-item"><span class="step-number">2</span><span>Score rounds</span></div>
+            <div class="how-item"><span class="step-number">3</span><span>See who wins</span></div>
           </div>
         </div>
 
@@ -358,9 +696,9 @@
             <button class="button button-secondary" id="continueButton" type="button">Continue <span aria-hidden="true">→</span></button>
           </div>
           <div id="nameStep" class="name-step" hidden>
-            <label class="field-label">Player names</label>
+            <div class="field-label" id="playerNamesLabel">Player names</div>
             <p class="name-hint">Names can repeat. Player numbers distinguish players with matching names.</p>
-            <div id="nameList" class="name-list"></div>
+            <div id="nameList" class="name-list" role="group" aria-labelledby="playerNamesLabel"></div>
             <button class="button button-primary full" id="startButton" type="button">Start game <span aria-hidden="true">↗</span></button>
           </div>
         </div>
@@ -522,39 +860,93 @@
       let draftScores = game?.draftScores && typeof game.draftScores === 'object' ? { ...game.draftScores } : {};
       let calculatedPlayerIndex = game?.calculatedPlayerIndex ?? 0;
       let focusAfterAddIndex = null;
+      let saveTimer = null;
+      let committedTotals = game ? calculateCommittedTotals(game) : [];
 
       function loadGame() {
+        let stored;
         try {
-          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-          if (!saved || !Array.isArray(saved.players) || saved.players.length < 2 || !Array.isArray(saved.rounds)) return null;
-          if (!['active', 'finished'].includes(saved.status)) return null;
-          const players = saved.players.map((player, index) => ({ name: String(player.name || `Player ${index + 1}`) }));
-          const rounds = saved.rounds.filter(round => Array.isArray(round.scores) && round.scores.length === players.length && round.scores.every(Number.isFinite));
-          const calculatedPlayerIndex = Number.isInteger(saved.calculatedPlayerIndex) && saved.calculatedPlayerIndex >= 0 && saved.calculatedPlayerIndex < players.length
-            ? saved.calculatedPlayerIndex
-            : players.length - 1;
-          const draftScores = {};
-          if (saved.draftScores && typeof saved.draftScores === 'object') {
-            Object.entries(saved.draftScores).forEach(([index, value]) => {
-              const text = String(value ?? '');
-              if (text.trim() === '') draftScores[index] = '';
-              else if (Number.isFinite(Number(text))) draftScores[index] = String(Math.abs(Number(text)));
-            });
-          }
-          return { players, rounds, status: saved.status, calculatedPlayerIndex, draftScores };
+          stored = localStorage.getItem(STORAGE_KEY);
         } catch (_) {
+          setSaveStatus('Storage unavailable — game cannot be restored', 'error');
           return null;
         }
+        if (!stored) return null;
+
+        let saved;
+        try {
+          saved = JSON.parse(stored);
+        } catch (_) {
+          setSaveStatus('Saved game could not be read', 'error');
+          return null;
+        }
+        if (!saved || !Array.isArray(saved.players) || saved.players.length < 2 || saved.players.length > 20 ||
+            !saved.players.every(player => player && typeof player === 'object') ||
+            !Array.isArray(saved.rounds) || !['active', 'finished'].includes(saved.status) ||
+            !saved.rounds.every(round => round && Array.isArray(round.scores) &&
+              round.scores.length === saved.players.length && round.scores.every(Number.isSafeInteger))) {
+          setSaveStatus('Saved game data is invalid', 'error');
+          return null;
+        }
+        const players = saved.players.map((player, index) => ({ name: String(player.name || `Player ${index + 1}`) }));
+        const rounds = saved.rounds;
+        const totals = calculateCommittedTotals({ players, rounds });
+        if (!totals.every(Number.isSafeInteger)) {
+          setSaveStatus('Saved game totals exceed the supported score range', 'error');
+          return null;
+        }
+        const calculatedPlayerIndex = Number.isInteger(saved.calculatedPlayerIndex) && saved.calculatedPlayerIndex >= 0 && saved.calculatedPlayerIndex < players.length
+          ? saved.calculatedPlayerIndex
+          : players.length - 1;
+        const draftScores = {};
+        if (saved.draftScores && typeof saved.draftScores === 'object') {
+          Object.entries(saved.draftScores).forEach(([index, value]) => {
+            const text = String(value ?? '');
+            if (/^\d+$/.test(index) && Number(index) < players.length) {
+              if (text.trim() === '') draftScores[index] = '';
+              else if (Number.isSafeInteger(Number(text)) && Number(text) >= 0) draftScores[index] = String(Number(text));
+            }
+          });
+        }
+        return { players, rounds, status: saved.status, calculatedPlayerIndex, draftScores };
+      }
+
+      function setSaveStatus(message, state = 'ready') {
+        saveState.dataset.state = state;
+        saveState.lastElementChild.textContent = message;
       }
 
       function saveGame() {
+        if (saveTimer !== null) {
+          clearTimeout(saveTimer);
+          saveTimer = null;
+        }
         try {
           if (game) localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
           else localStorage.removeItem(STORAGE_KEY);
-          saveState.lastElementChild.textContent = game ? 'Saved on this device' : 'Ready for a game';
+          setSaveStatus(game ? 'Saved on this device' : 'Ready for a game');
         } catch (_) {
-          saveState.lastElementChild.textContent = 'Game in this browser';
+          setSaveStatus('Could not save on this device', 'error');
         }
+      }
+
+      function scheduleSave() {
+        setSaveStatus('Saving…', 'saving');
+        if (saveTimer !== null) clearTimeout(saveTimer);
+        saveTimer = window.setTimeout(saveGame, 180);
+      }
+
+      function calculateCommittedTotals(currentGame) {
+        const totals = currentGame.players.map(() => 0);
+        currentGame.rounds.forEach(round => {
+          round.scores.forEach((score, index) => { totals[index] += score; });
+        });
+        return totals;
+      }
+
+      function commitRound(scores) {
+        game.rounds.push({ scores });
+        scores.forEach((score, index) => { committedTotals[index] += score; });
       }
 
       function showScreen(target) {
@@ -579,19 +971,22 @@
       }
 
       function getTotals(includeDraft = false) {
-        const totals = game.players.map((_, playerIndex) => game.rounds.reduce((sum, round) => sum + round.scores[playerIndex], 0));
+        const totals = [...committedTotals];
         if (includeDraft && game.status === 'active' && game.players.length > 0) {
           const autoIndex = Number(autoPlayer.value);
           let enteredLosses = 0;
+          const changes = game.players.map(() => 0);
           game.players.forEach((_, index) => {
             if (index === autoIndex) return;
             const raw = String(draftScores[index] ?? '').trim();
-            if (!raw || !Number.isInteger(Number(raw)) || Number(raw) < 0) return;
+            if (!raw || !Number.isSafeInteger(Number(raw)) || Number(raw) < 0) return;
             const loss = Number(raw);
-            totals[index] -= loss;
+            changes[index] -= loss;
             enteredLosses += loss;
           });
-          totals[autoIndex] += enteredLosses;
+          changes[autoIndex] += enteredLosses;
+          const projectedTotals = totals.map((total, index) => total + changes[index]);
+          if (projectedTotals.every(Number.isSafeInteger)) return projectedTotals;
         }
         return totals;
       }
@@ -713,7 +1108,6 @@
           activeRow.append(cell);
         });
         scoreEntryList.append(activeRow);
-        updateRoundCalculation();
         const sheetScroll = document.getElementById('scoreSheetScroll');
         sheetScroll.scrollTop = sheetScroll.scrollHeight;
       }
@@ -721,13 +1115,21 @@
       function updateRoundCalculation() {
         const autoIndex = Number(autoPlayer.value);
         let lossTotal = 0;
-        let complete = true;
+        let invalidScore = false;
+        let exceedsLimit = false;
         game.players.forEach((_, index) => {
           if (index === autoIndex) return;
           const value = String(draftScores[index] ?? '').trim();
-          if (value === '' || !Number.isInteger(Number(value)) || Number(value) < 0) complete = false;
-          else lossTotal += Number(value);
+          const score = Number(value);
+          if (value === '' || !Number.isSafeInteger(score) || score < 0) {
+            invalidScore = true;
+            return;
+          }
+          lossTotal += score;
+          if (!Number.isSafeInteger(lossTotal) || !Number.isSafeInteger(committedTotals[index] - score)) exceedsLimit = true;
         });
+        if (!Number.isSafeInteger(committedTotals[autoIndex] + lossTotal)) exceedsLimit = true;
+        const complete = !invalidScore && !exceedsLimit;
         const autoCell = scoreEntryList.querySelector(`.score-entry [data-player-index="${autoIndex}"]`);
         const output = autoCell.querySelector('.sheet-computed');
         document.getElementById('mobileWinnerName').textContent = playerLabel(autoIndex);
@@ -741,23 +1143,34 @@
         } else {
           output.textContent = 'Waiting';
           output.classList.add('waiting');
-          roundTotal.textContent = 'Enter a whole-number points-lost amount in each blank cell.';
+          const message = exceedsLimit
+            ? 'Combined points lost exceed the maximum supported score.'
+            : 'Enter a whole-number points-lost amount in each blank cell.';
+          roundTotal.textContent = message;
           document.getElementById('mobileAutoScore').textContent = 'Waiting';
           document.getElementById('mobileAutoScore').classList.add('waiting');
-          mobileRoundTotal.textContent = 'Enter a points-lost amount for each other player.';
+          mobileRoundTotal.textContent = exceedsLimit
+            ? 'Combined points lost exceed the maximum supported score.'
+            : 'Enter a points-lost amount for each other player.';
         }
         game.draftScores = { ...draftScores };
         game.calculatedPlayerIndex = autoIndex;
         addRoundButton.disabled = !complete;
         mobileAddRoundButton.disabled = !complete;
-        renderRoster();
-        renderMobileRoster();
+        renderStandings();
       }
 
-      function renderRoster() {
-        rosterList.replaceChildren();
+      function renderStandings() {
         const totals = getTotals(true);
-        const standings = game.players.map((player, index) => ({ player, index, total: totals[index] })).sort((a, b) => b.total - a.total || a.index - b.index);
+        const standings = game.players
+          .map((player, index) => ({ player, index, total: totals[index] }))
+          .sort((a, b) => b.total - a.total || a.index - b.index);
+        renderRoster(standings);
+        renderMobileRoster(standings);
+      }
+
+      function renderRoster(standings) {
+        rosterList.replaceChildren();
         standings.forEach(({ player, index, total }) => {
           const row = document.createElement('div');
           row.className = 'roster-person';
@@ -777,10 +1190,8 @@
         });
       }
 
-      function renderMobileRoster() {
+      function renderMobileRoster(standings) {
         mobileRosterList.replaceChildren();
-        const totals = getTotals(true);
-        const standings = game.players.map((player, index) => ({ player, index, total: totals[index] })).sort((a, b) => b.total - a.total || a.index - b.index);
         standings.forEach(({ player, index, total }) => {
           const row = document.createElement('div');
           row.className = 'mobile-roster-person';
@@ -868,25 +1279,28 @@
           row.append(copy, control);
           mobileLossList.append(row);
         });
-        renderMobileRoster();
         renderMobileHistory();
-        updateRoundCalculation();
         document.getElementById('mobileFinishButton').disabled = game.rounds.length === 0;
       }
 
       function draftIsComplete() {
         const autoIndex = Number(autoPlayer.value);
-        return game.players.every((_, index) => {
+        let lossTotal = 0;
+        const lossesAreValid = game.players.every((_, index) => {
           if (index === autoIndex) return true;
           const value = String(draftScores[index] ?? '').trim();
-          return value !== '' && Number.isInteger(Number(value)) && Number(value) >= 0;
+          const score = Number(value);
+          if (value === '' || !Number.isSafeInteger(score) || score < 0) return false;
+          lossTotal += score;
+          return Number.isSafeInteger(lossTotal) && Number.isSafeInteger(committedTotals[index] - score);
         });
+        return lossesAreValid && Number.isSafeInteger(committedTotals[autoIndex] + lossTotal);
       }
 
       function addCurrentRound() {
         if (!draftIsComplete()) return;
         const autoIndex = Number(autoPlayer.value);
-        game.rounds.push({ scores: getDraftRoundScores() });
+        commitRound(getDraftRoundScores());
         calculatedPlayerIndex = autoIndex;
         draftScores = {};
         game.draftScores = {};
@@ -906,7 +1320,7 @@
         const autoIndex = Number(autoPlayer.value);
         const hasDraftScores = game.players.some((_, index) => index !== autoIndex && String(draftScores[index] ?? '').trim() !== '');
         if (hasDraftScores && !draftIsComplete()) {
-          const message = 'Enter a points-lost amount for every other player before finishing.';
+          const message = 'Complete the round with valid whole-number scores before finishing.';
           roundTotal.textContent = message;
           mobileRoundTotal.textContent = message;
           const mobileInput = mobileLossList.querySelector('input');
@@ -916,7 +1330,7 @@
           return;
         }
         if (hasDraftScores) {
-          game.rounds.push({ scores: getDraftRoundScores() });
+          commitRound(getDraftRoundScores());
           draftScores = {};
           game.draftScores = {};
         }
@@ -933,7 +1347,7 @@
         buildAutoPlayerOptions();
         buildScoreInputs();
         buildMobileGame();
-        renderRoster();
+        updateRoundCalculation();
         document.getElementById('finishButton').disabled = game.rounds.length === 0;
         saveGame();
       }
@@ -987,6 +1401,7 @@
       document.getElementById('startButton').addEventListener('click', () => {
         const names = [...nameList.querySelectorAll('input')].map((input, index) => input.value.trim() || `Player ${index + 1}`);
         game = { players: names.map(name => ({ name })), rounds: [], status: 'active', draftScores: {}, calculatedPlayerIndex: names.length - 1 };
+        committedTotals = names.map(() => 0);
         calculatedPlayerIndex = names.length - 1;
         draftScores = {};
         renderGame();
@@ -999,6 +1414,7 @@
         mobileAutoPlayer.value = String(calculatedPlayerIndex);
         buildScoreInputs();
         buildMobileGame();
+        updateRoundCalculation();
         saveGame();
       }
       autoPlayer.addEventListener('change', () => selectRoundWinner(autoPlayer.value));
@@ -1013,7 +1429,7 @@
           if (syncedInput && syncedInput !== input) syncedInput.value = input.value;
         });
         updateRoundCalculation();
-        saveGame();
+        scheduleSave();
       }
       scoreEntryList.addEventListener('input', handleScoreInput);
       mobileLossList.addEventListener('input', handleScoreInput);
@@ -1038,6 +1454,7 @@
       document.getElementById('mobileFinishButton').addEventListener('click', finishGame);
       document.getElementById('newGameButton').addEventListener('click', () => {
         game = null;
+        committedTotals = [];
         calculatedPlayerIndex = 0;
         draftScores = {};
         nameStep.hidden = true;
@@ -1050,9 +1467,8 @@
       if (game) {
         if (game.status === 'finished' && game.rounds.length > 0) renderResults();
         else { game.status = 'active'; renderGame(); }
-      } else {
-        saveGame();
       }
+      window.addEventListener('pagehide', saveGame);
     })();
   </script>
 </body>
